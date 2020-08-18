@@ -34,6 +34,18 @@ export enum Operator {
 
 
 export default abstract class Instruction {
+	/**
+	 * Compare two instructions.
+	 * @param instruction the instruction to compare
+	 * @returns Is this instruction equal to the argument?
+	 * @final
+	 */
+	equals(instruction: Instruction): boolean {
+		return this === instruction || this.equals_helper(instruction)
+	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return this.toString() === instruction.toString()
+	}
 }
 
 
@@ -48,6 +60,9 @@ export class InstructionNone extends Instruction {
 	toString(): string {
 		return ''
 	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionNone
+	}
 }
 /**
  * Throw an error at runtime.
@@ -59,6 +74,9 @@ class InstructionUnreachable extends Instruction {
 	toString(): string {
 		return `(unreachable)`
 	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionUnreachable
+	}
 }
 /**
  * Do nothing at runtime.
@@ -69,6 +87,9 @@ class InstructionNop extends Instruction {
 	 */
 	toString(): string {
 		return `(nop)`
+	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionNop
 	}
 }
 /**
@@ -96,6 +117,10 @@ export class InstructionConst extends InstructionExpression {
 	toString(): string {
 		return `(${ (!this.isFloat) ? 'i32' : 'f64' }.const ${ this.value })`
 	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionConst
+			&& this.value === instruction.value
+	}
 	get isFloat(): boolean {
 		return this.value instanceof Float64
 	}
@@ -113,6 +138,16 @@ abstract class InstructionLocal extends InstructionExpression {
 		protected readonly op: InstructionExpression | boolean = false,
 	) {
 		super()
+	}
+	/** @final */
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionLocal
+			&& this.name === instruction.name
+			&& (
+				(this.op instanceof Instruction && instruction.op instanceof Instruction)
+					? this.op.equals(instruction.op)
+					: this.op === instruction.op
+			)
 	}
 	get isFloat(): boolean {
 		return this.op instanceof InstructionExpression ? this.op.isFloat : this.op
@@ -170,6 +205,11 @@ export class InstructionUnop extends InstructionExpression {
 			[Operator.EMP, (!this.arg.isFloat) ? `call $iemp` : `call $femp`],
 		]).get(this.op) || (() => { throw new TypeError('Invalid operation.') })() } ${ this.arg })`
 	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionUnop
+			&& this.op === instruction.op
+			&& this.arg.equals(instruction.arg)
+	}
 	get isFloat(): boolean {
 		return [Operator.AFF, Operator.NEG].includes(this.op) && this.arg.isFloat
 	}
@@ -222,6 +262,12 @@ export class InstructionBinop extends InstructionExpression {
 			[Operator.EQ,  (!this.isFloat) ? `i32.eq`    : `f64.eq`],
 		]).get(this.op) || (() => { throw new TypeError('Invalid operation.') })() } ${ this.arg0 } ${ this.arg1 })`
 	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionBinop
+			&& this.op === instruction.op
+			&& this.arg0.equals(instruction.arg0)
+			&& this.arg1.equals(instruction.arg1)
+	}
 	get isFloat(): boolean {
 		return this.arg0.isFloat || this.arg1.isFloat
 	}
@@ -251,6 +297,12 @@ export class InstructionCond extends InstructionExpression {
 	toString(): string {
 		return `(if (result ${ (!this.isFloat) ? `i32` : `f64` }) ${ this.arg0 } (then ${ this.arg1 }) (else ${ this.arg2 }))`
 	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionCond
+			&& this.arg0.equals(instruction.arg0)
+			&& this.arg1.equals(instruction.arg1)
+			&& this.arg2.equals(instruction.arg2)
+	}
 	get isFloat(): boolean {
 		return this.arg1.isFloat || this.arg2.isFloat
 	}
@@ -279,6 +331,11 @@ export class InstructionStatement extends Instruction {
 			)
 		`
 	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionStatement
+			&& this.count === instruction.count
+			&& this.expr.equals(instruction.expr)
+	}
 }
 /**
  * Create a program.
@@ -299,5 +356,14 @@ export class InstructionModule extends Instruction {
 				${ this.comps.join('\n') }
 			)
 		`
+	}
+	protected equals_helper(instruction: Instruction): boolean {
+		return instruction instanceof InstructionModule
+			&& this.comps.every((comp, i) => {
+				const comp_i: string | Instruction = instruction.comps[i]
+				return (comp instanceof Instruction && comp_i instanceof Instruction)
+					? comp.equals(comp_i)
+					: comp === comp_i
+			})
 	}
 }
