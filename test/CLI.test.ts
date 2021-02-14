@@ -1,8 +1,9 @@
 import * as assert from 'assert'
 
-import CLI, {
+import {
+	CLI,
 	Command,
-} from '../src/class/CLI.class'
+} from '../src/CLI.class';
 
 
 

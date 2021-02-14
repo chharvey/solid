@@ -1,10 +1,21 @@
-import Int16 from '../src/vm/Int16.class'
-import Float64 from '../src/vm/Float64.class'
+import {
+	SolidTypeConstant,
+	Int16,
+	Float64,
+} from '../src/validator/'
 import {
 	InstructionConst,
-} from '../src/vm/Instruction.class'
+} from '../src/builder/'
 
 
+
+export function typeConstInt(x: bigint): SolidTypeConstant {
+	return new SolidTypeConstant(new Int16(x))
+}
+
+export function typeConstFloat(x: number): SolidTypeConstant {
+	return new SolidTypeConstant(new Float64(x))
+}
 
 export function instructionConstInt(x: bigint): InstructionConst {
 	return new InstructionConst(new Int16(x))

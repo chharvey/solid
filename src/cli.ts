@@ -1,7 +1,10 @@
-import Dev from './class/Dev.class'
-import CLI, {
+import {
+	Dev,
+} from './core/';
+import {
+	CLI,
 	Command,
-} from './class/CLI.class'
+} from './CLI.class';
 
 
 
@@ -10,7 +13,7 @@ import CLI, {
 	if (cli.command === Command.HELP) {
 		console.log(CLI.HELPTEXT)
 		if (cli.argv.config) {
-			console.log(CLI.CONFIGTEXT)
+			console.log('\n' + CLI.CONFIGTEXT)
 		}
 	} else if (cli.command === Command.VERSION) {
 		console.log(`solid version ${ Dev.VERSION }`)

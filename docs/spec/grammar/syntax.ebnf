@@ -1,11 +1,19 @@
-IDENTIFIER      ::= [../docs/spec/language-lexicon.md#identifiers];
-INTEGER         ::= [../docs/spec/language-lexicon.md#numbers];
-FLOAT           ::= [../docs/spec/language-lexicon.md#numbers];
-STRING          ::= [../docs/spec/language-lexicon.md#string-literals];
-TEMPLATE_FULL   ::= [../docs/spec/language-lexicon.md#template-literals];
-TEMPLATE_HEAD   ::= [../docs/spec/language-lexicon.md#template-literals];
-TEMPLATE_MIDDLE ::= [../docs/spec/language-lexicon.md#template-literals];
-TEMPLATE_TAIL   ::= [../docs/spec/language-lexicon.md#template-literals];
+// KEYWORD         ::= [./lexicon.ebnf#Keyword];
+// IDENTIFIER      ::= [./lexicon.ebnf#Identifier];
+// INTEGER         ::= [./lexicon.ebnf#Integer];
+// FLOAT           ::= [./lexicon.ebnf#Float];
+// STRING          ::= [./lexicon.ebnf#String];
+// TEMPLATE_FULL   ::= [./lexicon.ebnf#TemplateFull];
+// TEMPLATE_HEAD   ::= [./lexicon.ebnf#TemplateHead];
+// TEMPLATE_MIDDLE ::= [./lexicon.ebnf#TempalteMiddle];
+// TEMPLATE_TAIL   ::= [./lexicon.ebnf#TempalteTail];
+
+
+
+Word ::=
+	| KEYWORD
+	| IDENTIFIER
+;
 
 
 
@@ -18,22 +26,76 @@ PrimitiveLiteral ::=
 	| STRING
 ;
 
+
+
+TypeKeyword ::=
+	| "bool"
+	| "int"
+	| "float"
+	| "obj"
+;
+
+TypeProperty
+	::= Word ":" Type;
+
+TypeTupleLiteral  ::= "[" ","? Type#         ","? "]";
+TypeRecordLiteral ::= "[" ","? TypeProperty# ","? "]";
+
+TypeUnit ::=
+	| "[" "]"
+	| IDENTIFIER
+	| PrimitiveLiteral
+	| TypeKeyword
+	| TypeTupleLiteral
+	| TypeRecordLiteral
+	| "(" Type ")"
+;
+
+TypeUnarySymbol ::=
+	| TypeUnit
+	| TypeUnarySymbol "!"
+;
+
+TypeIntersection ::= (TypeIntersection "&")? TypeUnarySymbol;
+TypeUnion        ::= (TypeUnion        "|")? TypeIntersection;
+
+Type ::=
+	| TypeUnion
+;
+
+
+
 StringTemplate ::=
 	| TEMPLATE_FULL
 	| TEMPLATE_HEAD Expression? (TEMPLATE_MIDDLE Expression?)* TEMPLATE_TAIL
 ;
 
+Property ::= Word        "="   Expression;
+Case     ::= Expression# "|->" Expression;
+
+ListLiteral    ::= "[" ","? Expression# ","? "]";
+RecordLiteral  ::= "[" ","? Property#   ","? "]";
+MappingLiteral ::= "[" ","? Case#       ","? "]";
+
 ExpressionUnit ::=
+	| "[" "]"
 	| IDENTIFIER
 	| PrimitiveLiteral
 	| StringTemplate
+	| ListLiteral
+	| RecordLiteral
+	| MappingLiteral
 	| "(" Expression ")"
 ;
 
-ExpressionUnarySymbol
-	::= ExpressionUnit | ("!" | "?" | "+" | "-") ExpressionUnarySymbol;
+ExpressionUnarySymbol ::=
+	| ExpressionUnit
+	| ("!" | "?" | "+" | "-") ExpressionUnarySymbol
+;
 
-ExpressionExponential    ::=  ExpressionUnarySymbol    ("^"                                      ExpressionExponential)?;
+ExpressionExponential
+	::= ExpressionUnarySymbol ("^" ExpressionExponential)?;
+
 ExpressionMultiplicative ::= (ExpressionMultiplicative ("*" | "/" ))?                            ExpressionExponential;
 ExpressionAdditive       ::= (ExpressionAdditive       ("+" | "-" ))?                            ExpressionMultiplicative;
 ExpressionComparative    ::= (ExpressionComparative    ("<" | ">" | "<=" | ">=" | "!<" | "!>"))? ExpressionAdditive;
@@ -51,15 +113,20 @@ Expression ::=
 
 
 
-DeclarationVariable
-	::= "let" "unfixed"? IDENTIFIER "=" Expression ";";
+DeclarationVariable ::= "let"  "unfixed"? IDENTIFIER ":" Type "=" Expression ";";
+DeclarationType     ::= "type"            IDENTIFIER "=" Type                ";";
+
+Declaration ::=
+	| DeclarationVariable
+	| DeclarationType
+;
 
 StatementAssignment
 	::= IDENTIFIER "=" Expression ";";
 
 Statement ::=
 	| Expression? ";"
-	| DeclarationVariable
+	| Declaration
 	| StatementAssignment
 ;
 

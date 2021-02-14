@@ -1,0 +1,137 @@
+Type TypeOf(SemanticConstant const) :=
+	1. *Let* `assess` be *UnwrapAffirm:* `Assess(const)`.
+	2. *Note:* `assess` is `const.value`.
+	3. *If* `assess` is of type `Or<Null, Boolean, Number>`:
+		1. *Return:* `ToType(assess)`.
+	4. *Assert:* `assess` is of type `Sequence<RealNumber>`.
+	5. *Return:* `String`.
+;
+
+
+
+Type TypeOf(SemanticVariable var) :=
+	1. *If* the validator’s symbol table contains a SymbolStructure `symbol` whose `id` is `var.id`:
+		1. *If* `symbol` is of type `SymbolStructureVar`:
+			1. *Return:* `symbol.type`.
+	2. *Return:* `Unknown`.
+;
+
+
+
+Type TypeOf(StringTemplate template) :=
+	1. *Return:* `String`.
+;
+
+
+
+Type! TypeOf(SemanticOperation expr) :=
+	1. *Let* `t` be *Unrwap:* `TypeOfUnassessedOperation(expr)`.
+	2. *Let* `assess` be `Assess(expr)`.
+	3. *If* `assess` is an abrupt completion:
+		1. *Return:* `t`.
+	4. *Assert:* `assess.value` exists.
+	5. *Return:* `ToType(assess.value)`.
+;
+
+
+
+Type TypeOfUnassessedOperation(SemanticOperation[operator: NOT | EMP] expr) :=
+	1. *Return:* `Boolean`.
+;
+
+Type! TypeOfUnassessedOperation(SemanticOperation[operator: NEG] expr) :=
+	1. *Assert:* `expr.children.count` is 1.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *If* `t0` is a subtype of `Union(Integer, Float)`:
+		1. *Return:* `t0`.
+	4. *Throw:* a new TypeError01.
+;
+
+Type! TypeOfUnassessedOperation(SemanticOperation[operator: EXP | MUL | DIV | ADD] expr) :=
+	1. *Assert:* `expr.children.count` is 2.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
+	4. *If* `t0` is a subtype of `Union(Integer, Float)` *and* `t1` is a subtype of `Union(Integer, Float)`:
+		1. *If* `t0` is a subtype of `Float` *or* `t1` is a subtype of `Float`:
+			1. *Return:* `Float`.
+		2. *Else*:
+			1. *Return:* `Integer`.
+	5. *Throw:* a new TypeError01.
+;
+
+Type! TypeOfUnassessedOperation(SemanticOperation[operator: LT | GT | LE | GE] expr) :=
+	1. *Assert:* `expr.children.count` is 2.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
+	4. *If* `t0` is a subtype of `Union(Integer, Float)` *and* `t1` is a subtype of `Union(Integer, Float)`:
+		1. *Return:* `Boolean`.
+	5. *Throw:* a new TypeError01.
+;
+
+Type! TypeOfUnassessedOperation(SemanticOperation[operator: IS | EQ] expr) :=
+	1. *Assert:* `expr.children.count` is 2.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
+	4. *If* `t0` is a subtype of `Union(Integer, Float)` *and* `t1` is a subtype of `Union(Integer, Float)`:
+		1. *If* `t0` is a subtype of `Integer` *or* `t1` is a subtype of `Integer`:
+			1. *If* `t0` is a subtype of `Float` *or* `t1` is a subtype of `Float`:
+				1. *If* `operator` is `IS`:
+					1. *Return:* `ToType(false)`.
+		2. *Return:* `Boolean`.
+	5. *If* `t0` and `t1` are disjoint:
+		1. *Return:* `ToType(false)`.
+	6. *Return:* `Boolean`.
+;
+
+Type! TypeOfUnassessedOperation(SemanticOperation[operator: AND] expr) :=
+	1. *Assert:* `expr.children.count` is 2.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
+	4. *Let `null_union_false` be `Union(Null, ToType(false))`.
+	5. *If* `t0` is a subtype of `null_union_false`:
+		1. *Return:* `t0`.
+	6. *If* `null` is assignable to `t0`:
+		1. *If* `false` is assignable to `t0`:
+			1. *Return:* `Union(null_union_false, t1)`.
+		2. *Return:* `Union(Null, t1)`.
+	7. *If* `false` is assignable to `t0`:
+		1. *Return:* `Union(ToType(false), t1)`.
+	8. *Return:* `t1`.
+;
+
+Type! TypeOfUnassessedOperation(SemanticOperation[operator: OR] expr) :=
+	1. *Assert:* `expr.children.count` is 2.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
+	4. *Let `null_union_false` be `Union(Null, ToType(false))`.
+	5. *If* `t0` is a subtype of `null_union_false`:
+		1. *Return:* `t1`.
+	6. *If* `null` is assignable to `t0` *or* `false` is assignable to `t0`:
+		1. *Let* `left` be a new type, containing the values in `t0`.
+		1. Remove `null` from the set of values in `left`.
+		2. Remove `false` from the set of values in `left`.
+		3. *Return:* `Union(left, t1)`.
+	7. *Return:* `t0`.
+;
+
+Type! TypeOfUnassessedOperation(SemanticOperation[operator: COND] expr) :=
+	1. *Assert:* `expr.children.count` is 3.
+	2. *Let* `t0` be *Unwrap:* `TypeOf(expr.children.0)`.
+	3. *Let* `t1` be *Unwrap:* `TypeOf(expr.children.1)`.
+	4. *Let* `t2` be *Unwrap:* `TypeOf(expr.children.2)`.
+	5. *If* `t0` is a subtype of `Boolean`:
+		1. *If* `t0` is `ToType(false)`:
+			1. *Return:* `t2`.
+		2. *If* `t0` is `ToType(true)`:
+			1. *Return:* `t1`.
+		3. *Return:* `Union(t1, t2)`.
+	6. *Throw:* a new TypeError01.
+;
+
+
+
+TypeConstant ToType(Or<Null, Boolean, Number> v) :=
+	1. *Let* `t` be a new structure of type `Type`.
+	2. *Set* `t.value` to `v`.
+	3. *Return:* `t`.
+;

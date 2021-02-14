@@ -248,10 +248,10 @@ The compiler will ignore all source text starting from `%` and onward,
 up to and including the next line break (**U+000A LINE FEED (LF)**).
 
 #### Multiline Comments
-Multiline comments are contained in the delimiters `{% %}`
-(**U+007B LEFT CURLY BRACKET**, **U+007C RIGHT CURLY BRACKET**, with adjacent percent signs),
-and may contain line breaks and may be nested.
+Multiline comments are contained in the delimiters `%% %%`,
+and may contain line breaks. Nesting is not possible.
 
-#### Block Comments
-Block comments begin and end with triple percent signs `%%%`.
-These delimiters *must* be on their own lines (with or without leading/trailing whitespace).
+##### Documentation Comments
+Documentation comments are multiline comments, but they use the delimiters `%%% %%`.
+The extra percent sign may signal to a separate parser that
+the comment documents the code structure that follows it.

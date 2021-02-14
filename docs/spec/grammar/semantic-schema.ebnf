@@ -1,16 +1,64 @@
+SemanticType =:=
+	| SemanticTypeConstant
+	| SemanticTypeAlias
+	| SemanticTypeEmptyCollection
+	| SemanticTypeList
+	| SemanticTypeRecord
+	| SemanticTypeOperation
+;
+
 SemanticExpression =:=
 	| SemanticConstant
-	| SemanticIdentifier
+	| SemanticVariable
 	| SemanticTemplate
+	| SemanticEmptyCollection
+	| SemanticList
+	| SemanticRecord
+	| SemanticMapping
 	| SemanticOperation
 ;
+
+
+
+SemanticKey[id: RealNumber]
+	::= ();
+
+
+
+SemanticTypeProperty
+	::= SemanticKey SemanticType;
+
+
+
+SemanticTypeConstant[value: Type]
+	::= ();
+
+SemanticTypeAlias[id: RealNumber]
+	::= ();
+
+SemanticTypeEmptyCollection ::= ();
+SemanticTypeList            ::= SemanticType+;
+SemanticTypeRecord          ::= SemanticTypeProperty+;
+
+SemanticTypeOperation[operator: ORNULL]
+	::= SemanticType;
+SemanticTypeOperation[operator: AND | OR]
+	::= SemanticType SemanticType;
+
+
+
+SemanticProperty
+	::= SemanticKey SemanticExpression;
+
+SemanticCase
+	::= SemanticExpression+ SemanticExpression;
 
 
 
 SemanticConstant[value: Null | Boolean | Number | Sequence<RealNumber>]
 	::= ();
 
-SemanticIdentifier[id: Unknown]
+SemanticVariable[id: RealNumber]
 	::= ();
 
 SemanticTemplate[type: "full"]
@@ -21,22 +69,21 @@ SemanticTemplate[type: "substitution"]
 SemanticTemplatePartial
 	::= (SemanticConstant SemanticExpression?)+;
 
-
+SemanticEmptyCollection ::= ();
+SemanticList            ::= SemanticExpression+;
+SemanticRecord          ::= SemanticProperty+;
+SemanticMapping         ::= SemanticCase+;
 
 SemanticOperation[operator: NOT | EMP]
 	::= SemanticExpression;
 SemanticOperation[operator: NEG]
 	::= SemanticExpression[type: Number];
-
 SemanticOperation[operator: EXP | MUL | DIV | ADD | LT | LE | GT | GE]
 	::= SemanticExpression[type: Number] SemanticExpression[type: Number];
-
 SemanticOperation[operator: IS | EQ]
 	::= SemanticExpression[type: Object] SemanticExpression[type: Object];
-
 SemanticOperation[operator: AND | OR]
 	::= SemanticExpression SemanticExpression;
-
 SemanticOperation[operator: COND]
 	::= SemanticExpression[type: Boolean] SemanticExpression SemanticExpression;
 
@@ -55,17 +102,24 @@ SemanticStatementExpression
 
 
 
-SemanticDeclaration[type: "variable"][unfixed: Boolean]
-	::= SemanticAssignee SemanticAssigned;
+SemanticDeclarationVariable[unfixed: Boolean]
+	::= SemanticVariable SemanticType SemanticExpression;
+
+SemanticDeclarationType
+	::= SemanticTypeAlias SemanticType;
+
+SemanticDeclaration =:=
+	| SemanticDeclarationVariable
+	| SemanticDeclarationType
+;
+
+
 
 SemanticAssignment
-	::= SemanticAssignee SemanticAssigned;
+	::= SemanticAssignee SemanticExpression;
 
 SemanticAssignee
-	::= SemanticIdentifier;
-
-SemanticAssigned
-	::= SemanticExpression;
+	::= SemanticVariable;
 
 
 

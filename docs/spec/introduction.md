@@ -143,8 +143,8 @@ instead of object/data manipulation.
 
 #### Functional
 Solid contains concepts in Lambda Calculus and [functional](https://en.wikipedia.org/wiki/Functional_programming)
-languages such as [Lisp](https://lisp-lang.org/) and [Haskell](https://www.haskell.org/).
-Lambdas are first-class citizens just like other data types, and are pure by default:
+languages such as [Common Lisp](https://lisp-lang.org/) and [Haskell](https://www.haskell.org/).
+Functions are first-class citizens just like other data types, and are pure by default:
 they cannot modify externals or have side effects, and they must return a value
 (unless explicitly defined otherwise).
 Error-handling is functional:

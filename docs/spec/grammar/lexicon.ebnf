@@ -4,13 +4,15 @@ Filebound
 
 
 Whitespace
-	:::= (#x20 | #x09 | #x0A)+;
+	:::= (#x20 | #x09 | #x0a)+;
 
 
 
 Punctuator :::=
 	// grouping
 		| "(" | ")"
+		| "[" | "]"
+		| "," | "|->"
 	// unary
 		| "!" | "?" | "+" | "-"
 	// binary
@@ -18,8 +20,9 @@ Punctuator :::=
 		| "<" | ">" | "<=" | ">=" | "!<" | "!>"
 		| "==" | "!="
 		| "&&" | "!&" | "||" | "!|"
+		| "&" | "|"
 	// statement
-		| ";" | "="
+		| ";" | ":" | "="
 ;
 
 
@@ -27,8 +30,12 @@ Punctuator :::=
 Keyword :::=
 	// literal
 		| "null"
+		| "bool"
 		| "false"
 		| "true"
+		| "int"
+		| "float"
+		| "obj"
 	// operator
 		| "is"
 		| "isnt"
@@ -37,6 +44,7 @@ Keyword :::=
 		| "else"
 	// storage
 		| "let"
+		| "type"
 	// modifier
 		| "unfixed"
 ;
@@ -99,8 +107,8 @@ StringChars :::=
 StringEscape :::=
 	| "'" | "\" | "s" | "t" | "n" | "r"
 	| "u{" DigitSequenceHex? "}"
-	| #x0A
-	| [^'\stnru#x0A#x03]
+	| #x0a
+	| [^'\stnru#x0a#x03]
 ;
 
 
@@ -153,30 +161,13 @@ TemplateChars__EndInterp__StartInterp :::=
 Comment :::=
 	| CommentLine
 	| CommentMulti
-	| CommentBlock
 ;
 
 CommentLine
-	:::= "%" [^#x0A#x03]* #x0A;
+	:::= "%" ([^%#x0a#x03] [^#x0a#x03]*)? #x0a;
 
 CommentMulti
-	:::= "{%" CommentMultiNestChars? "%}";
-
-CommentMultiChars :::=
-	| [^{%#x03] CommentMultiChars?
-	| "{"+ [^%#x03] CommentMultiChars?
-	| "%"+ ( [^}#x03] CommentMultiChars? )?
-	| CommentMulti CommentMultiChars?
-;
-
-CommentBlock
-	:::=
-		{following: #x0A [#x09#x20]*}"%%%"
-		#x0A
-		({unequal: [#x09#x20]* "%%%"}[^#x03]* #x0A)?
-		[#x09#x20]* "%%%"
-		{lookahead: #x0A}
-	;
+	:::= "%%" ("%"? [^%#x03])* "%%";
 
 
 

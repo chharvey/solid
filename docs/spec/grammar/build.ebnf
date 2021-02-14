@@ -1,86 +1,127 @@
 Sequence<Instruction> Build(Null n) :=
 	1. *Return:* ["Push `0` onto the operand stack."].
+;
 
 Sequence<Instruction> Build(Boolean b) :=
 	1. *If* `b` is `true`:
 		1. *Return:* ["Push `1` onto the operand stack."].
 	2. *Assert:* `b` is `false`.
 	3. *Return:* ["Push `0` onto the operand stack."].
+;
 
 Sequence<Instruction> Build(Number n) :=
 	1. *Return:* ["Push `n` onto the operand stack."].
+;
 
-Sequence<Instruction> Build(SemanticConstant const) :=
-	1. *Let* `assess` be the result of performing `Assess(const)`.
-	2. *Assert:* `assess` is a normal completion.
-	3. *Assert:* `assess.value` is of type `Or<Null, Boolean, Number>`.
+
+
+Sequence<Instruction> Build(SemanticExpression expr) :=
+	1. *Let* `assess` be `Assess(expr)`.
+	2. *If* `assess` is an abrupt completion:
+		1. *Return:* `BuildExpression(expr)`.
+	3. *Assert:* `assess.value` exists.
 	4. *Return:* `Build(assess.value)`.
+;
 
-Sequence<Instruction> Build(SemanticIdentifier iden) :=
+
+
+Sequence<Instruction> Build(SemanticStatementExpression stmt) :=
+	1. *Let* `sequence` be an empty sequence of `Instruction`s.
+	2. *If* `stmt.children.count` is greater than 0:
+		1. *Set* `sequence` to *UnwrapAffirm:* `Build(stmt.children.0)`.
+	3. *Return:* `sequence`.
+;
+
+
+
+Sequence<Instruction> Build(SemanticDeclaration decl) :=
 	// TO BE DETERMINED
+;
 
-Void Build(SemanticTemplate tpl) :=
+Sequence<Instruction> Build(SemanticAssignment assign) :=
 	// TO BE DETERMINED
+;
 
 
 
-Sequence<Instruction> Build(SemanticOperation[operator: NOT | EMP | NEG] expr) :=
+Sequence<Instruction> Build(SemanticGoal goal) :=
+	1. *Let* `sequence` be an empty sequence of `Instruction`s.
+	2. For each `SemanticStatment stmt` in `goal.children`:
+		1. *Let* `instrs` be *UnwrapAffirm:* `Build(stmt)`.
+		2. Push `...instrs` to `sequence`.
+	3. *Return:* `sequence`.
+;
+
+
+
+Sequence<Instruction> BuildExpression(SemanticConstant const) :=
+	1. *Let* `assess` be *UnwrapAffirm:* `Assess(const)`.
+	2. *Return:* `Build(assess)`.
+;
+
+
+
+Sequence<Instruction> BuildExpression(SemanticVariable var) :=
+	// TO BE DETERMINED
+;
+
+
+
+Sequence<Instruction> BuildExpression(SemanticTemplate tpl) :=
+	// TO BE DETERMINED
+;
+
+
+
+Sequence<Instruction> BuildExpression(SemanticOperation[operator: NOT | EMP | NEG] expr) :=
 	1. *Assert:* `expr.children.count` is 1.
-	2. *Let* `instrs` be the result of performing `TryAssessAndBuild(expr.children.0)`.
+	2. *Let* `instrs` be *UnwrapAffirm:* `Build(expr.children.0)`.
 	3. *Return:* [
 		...instrs,
 		"`expr.operator`",
 	].
+;
 
-
-
-Sequence<Instruction> Build(SemanticOperation[operator: EXP | MUL | DIV | ADD | LT | GT | LE | GE] expr) :=
-	1. *Let* `builds` be `PrebuildSemanticOperationBinary(expr)`.
+Sequence<Instruction> BuildExpression(SemanticOperation[operator: EXP | MUL | DIV | ADD | LT | GT | LE | GE | IS | EQ] expr) :=
+	1. *Let* `builds` be *UnwrapAffirm:* `PrebuildSemanticOperationBinary(expr)`.
 	2. *Return:* [
 		...builds.0,
 		...builds.1,
 		"`expr.operator`",
 	].
+;
 
+Sequence<Instruction> BuildExpression(SemanticOperation[operator: AND] expr) :=
+	1. *Let* `builds` be *UnwrapAffirm:* `PrebuildSemanticOperationBinary(expr)`.
+	2. *Return:* [
+		...builds.1,
+		...builds.0,
+		"TEE the local variable `operand0`.",
+		"GET the local variable `operand0`.",
+		"NOT",
+		"NOT",
+		"SELECT",
+	].
+;
 
-
-Sequence<Instruction> Build(SemanticOperation[operator: AND] expr) :=
-	1. *Let* `builds` be `PrebuildSemanticOperationBinary(expr)`.
+Sequence<Instruction> BuildExpression(SemanticOperation[operator: OR] expr) :=
+	1. *Let* `builds` be *UnwrapAffirm:* `PrebuildSemanticOperationBinary(expr)`.
 	2. *Return:* [
 		...builds.0,
 		"TEE the local variable `operand0`.",
-		"NOT",
-		"NOT",
-		"IF",
 		...builds.1,
-		"ELSE",
 		"GET the local variable `operand0`.",
-		"END",
-	].
-
-
-
-Sequence<Instruction> Build(SemanticOperation[operator: OR] expr) :=
-	1. *Let* `builds` be `PrebuildSemanticOperationBinary(expr)`.
-	2. *Return:* [
-		...builds.0,
-		"TEE the local variable `operand0`.",
 		"NOT",
 		"NOT",
-		"IF",
-		"GET the local variable `operand0`.",
-		"ELSE",
-		...builds.1,
-		"END",
+		"SELECT",
 	].
+;
 
-
-
-Sequence<Instruction> Build(SemanticOperation[operator: COND] expr) :=
+Sequence<Instruction> BuildExpression(SemanticOperation[operator: COND] expr) :=
 	1. *Assert:* `expr.children.count` is 3.
-	2. *Let* `instrs0` be the result of performing `TryAssessAndBuild(expr.children.0)`.
-	3. *Let* `instrs1` be the result of performing `TryAssessAndBuild(expr.children.1)`.
-	4. *Let* `instrs2` be the result of performing `TryAssessAndBuild(expr.children.2)`.
+	2. *Let* `instrs0` be *UnwrapAffirm:* `Build(expr.children.0)`.
+	3. *Let* `instrs1` be *UnwrapAffirm:* `Build(expr.children.1)`.
+	4. *Let* `instrs2` be *UnwrapAffirm:* `Build(expr.children.2)`.
 	5. *Return:* [
 		...instrs0,
 		"IF",
@@ -89,50 +130,14 @@ Sequence<Instruction> Build(SemanticOperation[operator: COND] expr) :=
 		...instrs2,
 		"END",
 	].
-
-
-
-Sequence<Instruction> Build(SemanticStatementExpression stmt) :=
-	1. *Let* `sequence` be an empty sequence of `Instruction`s.
-	2. *If* `stmt.children.count` is greater than 0:
-		1. *Set* `sequence` to the result of performing `TryAssessAndBuild(stmt.children.0)`.
-	3. *Return* `sequence`.
-
-
-
-Sequence<Instruction> Build(SemanticDeclaration decl) :=
-	// TO BE DETERMINED
-
-Sequence<Instruction> Build(SemanticAssignment assign) :=
-	// TO BE DETERMINED
-
-
-
-Sequence<Instruction> Build(SemanticGoal goal) :=
-	1. *Let* `sequence` be an empty sequence of `Instruction`s.
-	2. For each `SemanticStatment stmt` in `goal.children`:
-		1. *Let* `instrs` be the result of performing `Build(stmt)`.
-		2. Push `...instrs` to `sequence`.
-	3. *Return* `sequence`.
+;
 
 
 
 // Prepares instructions for a binary operation.
 Sequence<Sequence<Instruction>, Sequence<Instruction>> PrebuildSemanticOperationBinary(SemanticOperation expr) :=
 	1. *Assert:* `expr.children.count` is 2.
-	2. *Let* `instrs0` be the result of performing `TryAssessAndBuild(expr.children.0)`.
-	3. *Let* `instrs1` be the result of performing `TryAssessAndBuild(expr.children.1)`.
+	2. *Let* `instrs0` be *UnwrapAffirm:* `Build(expr.children.0)`.
+	3. *Let* `instrs1` be *UnwrapAffirm:* `Build(expr.children.1)`.
 	4. *Return:* [instrs0, instrs1].
-
-
-
-// Attempts to assess a semantic node first and then build the assessment;
-// if the assessment fails, builds the semantic node.
-Sequence<Instruction> TryAssessAndBuild(SemanticExpression expr) :=
-	1. *Let* `assess` be the result of performing `Assess(expr)`.
-	2. *If* `assess` is an abrupt completion:
-		1. *Let* `instrs` be the result of performing `Build(expr)`.
-	3. *Else:*
-		1. *Assert:* `assess.value` is not `void`.
-		2. *Let* `instrs` be the result of performing `Build(assess.value)`.
-	4. *Return:* `instrs`.
+;

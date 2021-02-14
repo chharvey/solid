@@ -1,11 +1,13 @@
 Void Evaluate(Instruction :::= "Push `value` onto the operand stack.", Number value) :=
 	1. Push `value` onto the operand stack.
+;
 
 Void Evaluate(Instruction :::= "NOT") :=
 	1. Pop `operand` from the operand stack.
 	2. *If* `operand` is of type `Integer` *and* `operand` is `0`:
 		1. Push `1` onto the operand stack.
 	3. Push `0` onto the operand stack.
+;
 
 Void Evaluate(Instruction :::= "EMP") :=
 	1. Pop `operand` from the operand stack.
@@ -14,24 +16,52 @@ Void Evaluate(Instruction :::= "EMP") :=
 	3. *If* `operand` is of type `Float` *and* `operand` is `0.0` or `-0.0`:
 		1. Push `1` onto the operand stack.
 	4. Push `0` onto the operand stack.
+;
 
 Void Evaluate(Instruction :::= "NEG") :=
 	1. Pop `operand` from the operand stack.
 	2. *Let* `negation` be the additive inverse, `-operand`,
 		obtained by negating `operand`.
 	3. Push `negation` onto the operand stack.
+;
 
 Void Evaluate(Instruction :::= "EXP" | "MUL" | "DIV" | "ADD") :=
 	1. Pop `operand1` from the operand stack.
 	2. Pop `operand0` from the operand stack.
-	3. *Let* `result` be the result of performing `PerformBinaryArithmetic(Instruction, operand0, operand1)`.
+	3. *Let* `result` be *UnwrapAffirm:* `PerformBinaryArithmetic(Instruction, operand0, operand1)`.
 	4. Push `result` onto the operand stack.
+;
 
 Void Evaluate(Instruction :::= "LT" | "GT" | "LE" | "GE") :=
 	1. Pop `operand1` from the operand stack.
 	2. Pop `operand0` from the operand stack.
-	3. *Let* `result` be the result of performing `PerformBinaryCompare(Instruction, operand0, operand1)`.
+	3. *Let* `result` be *UnwrapAffirm:* `PerformBinaryCompare(Instruction, operand0, operand1)`.
 	4. Push `result` onto the operand stack.
+;
+
+Void Evaluate(Instruction :::= "IS") :=
+	1. Pop `operand1` from the operand stack.
+	2. Pop `operand0` from the operand stack.
+	3. *Let* `result` be *UnwrapAffirm:* `Identical(operand0, operand1)`.
+	4. Push `result` onto the operand stack.
+;
+
+Void Evaluate(Instruction :::= "EQ") :=
+	1. Pop `operand1` from the operand stack.
+	2. Pop `operand0` from the operand stack.
+	3. *Let* `result` be *UnwrapAffirm:* `Equal(operand0, operand1)`.
+	4. Push `result` onto the operand stack.
+;
+
+Void Evaluate(Instruction :::= "SELECT") :=
+	1. Pop `condition` from the operand stack.
+	2. Pop `alternative` from the operand stack.
+	3. Pop `consequent` from the operand stack.
+	4. *If* `condition` is non-zero:
+		1. Push `consequent` onto the operand stack.
+	5. *Else:*
+		1. Push `alternative` onto the operand stack.
+;
 
 Void Evaluate(Instruction :::= "IF") :=
 	1. Pop `condition` from the operand stack.
@@ -41,3 +71,4 @@ Void Evaluate(Instruction :::= "IF") :=
 	3. *Else:*
 		1. *Let* `alternative` be the result of performing the instructions from the next "ELSE" and until an "END" instruction is reached.
 		2. Push `alternative` onto the operand stack.
+;

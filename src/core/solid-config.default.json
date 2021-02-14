@@ -1,0 +1,11 @@
+{
+	"languageFeatures": {
+		"comments"          : true,
+		"integerRadices"    : false,
+		"numericSeparators" : false
+	},
+	"compilerOptions": {
+		"constantFolding": true,
+		"intCoercion":     true
+	}
+}

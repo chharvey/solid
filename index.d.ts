@@ -6,7 +6,7 @@
 
 
 
-import type SolidConfig from './src/SolidConfig'
+import type {SolidConfig} from './src/core/';
 
 
 /**
