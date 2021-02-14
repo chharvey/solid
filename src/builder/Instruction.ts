@@ -1,4 +1,7 @@
 import {
+	strictEqual,
+} from '../decorators';
+import {
 	Operator,
 	ValidOperatorUnary,
 	ValidOperatorBinary,
@@ -23,12 +26,10 @@ export abstract class Instruction {
 	 * Compare two instructions.
 	 * @param instruction the instruction to compare
 	 * @returns Is this instruction equal to the argument?
-	 * @final
 	 */
+	@strictEqual
+
 	equals(instruction: Instruction): boolean {
-		return this === instruction || this.equals_helper(instruction)
-	}
-	protected equals_helper(instruction: Instruction): boolean {
 		return this.toString() === instruction.toString()
 	}
 }
@@ -45,7 +46,10 @@ export class InstructionNone extends Instruction {
 	toString(): string {
 		return ''
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionNone
 	}
 }
@@ -59,7 +63,10 @@ class InstructionUnreachable extends Instruction {
 	toString(): string {
 		return `(unreachable)`
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionUnreachable
 	}
 }
@@ -74,7 +81,10 @@ class InstructionNop extends Instruction {
 	toString(): string {
 		return `(nop)`
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionNop
 	}
 }
@@ -120,7 +130,10 @@ export class InstructionConst extends InstructionExpression {
 	toString(): string {
 		return `(${ (!this.isFloat) ? 'i32' : 'f64' }.const ${ (this.value.identical(new Float64(-0.0))) ? '-0.0' : this.value })`
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionConst
 			&& this.value === instruction.value
 	}
@@ -142,8 +155,13 @@ abstract class InstructionLocal extends InstructionExpression {
 	) {
 		super()
 	}
-	/** @final */
-	protected equals_helper(instruction: Instruction): boolean {
+	/**
+	 * @overrides Instruction
+	 * @final
+	 */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionLocal
 			&& this.name === instruction.name
 			&& (
@@ -217,7 +235,10 @@ export class InstructionUnop extends InstructionExpression {
 			[Operator.EMP, (!this.arg.isFloat) ? `call $iemp` : `call $femp`],
 		]).get(this.op)! } ${ this.arg })`
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionUnop
 			&& this.op === instruction.op
 			&& this.arg.equals(instruction.arg)
@@ -246,7 +267,13 @@ export abstract class InstructionBinop extends InstructionExpression {
 	) {
 		super()
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/**
+	 * @overrides Instruction
+	 * @final
+	 */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionBinop
 			&& this.op === instruction.op
 			&& this.arg0.equals(instruction.arg0)
@@ -414,7 +441,10 @@ export class InstructionCond extends InstructionExpression {
 	toString(): string {
 		return `(if (result ${ (!this.isFloat) ? `i32` : `f64` }) ${ this.arg0 } (then ${ this.arg1 }) (else ${ this.arg2 }))`
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionCond
 			&& this.arg0.equals(instruction.arg0)
 			&& this.arg1.equals(instruction.arg1)
@@ -448,7 +478,10 @@ export class InstructionStatement extends Instruction {
 			)
 		`
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionStatement
 			&& this.count === instruction.count
 			&& this.expr.equals(instruction.expr)
@@ -474,7 +507,10 @@ export class InstructionModule extends Instruction {
 			)
 		`
 	}
-	protected equals_helper(instruction: Instruction): boolean {
+	/** @overrides Instruction */
+	@strictEqual
+
+	equals(instruction: Instruction): boolean {
 		return instruction instanceof InstructionModule
 			&& this.comps.every((comp, i) => {
 				const comp_i: string | Instruction = instruction.comps[i]
