@@ -1,4 +1,7 @@
 import {
+	strictEqual,
+} from '../decorators';
+import {
 	SolidLanguageType,
 	SolidTypeConstant,
 } from './SolidLanguageType';
@@ -46,8 +49,8 @@ export class SolidBoolean extends SolidObject {
 	toString(): string {
 		return `${ this.value }`
 	}
-	/** @override */
-	@SolidObject.identicalDeco
+	/** @overrides SolidObject */
+	@strictEqual
 	identical(value: SolidObject): boolean {
 		return value instanceof SolidBoolean && this.value === value.value
 	}

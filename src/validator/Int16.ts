@@ -1,3 +1,6 @@
+import {
+	strictEqual,
+} from '../decorators';
 import type {SolidLanguageType} from './SolidLanguageType';
 import {SolidObject} from './SolidObject';
 import {SolidNumber} from './SolidNumber';
@@ -45,8 +48,8 @@ export class Int16 extends SolidNumber<Int16> {
 	toString(): string {
 		return `${ this.toNumeric() }`
 	}
-	/** @override */
-	@SolidObject.identicalDeco
+	/** @overrides SolidObject */
+	@strictEqual
 	identical(value: SolidObject): boolean {
 		return value instanceof Int16 && this.internal.every((bit, i) => bit === value.internal[i]);
 	}

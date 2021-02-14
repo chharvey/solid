@@ -4,7 +4,7 @@
  * If it does, return that value.
  * If it doen’t, compute the value, store it in the database, and then return it.
  * @param   _prototype    the prototype that has the method to be decorated
- * @param   _propertg_key the name of the method to be decorated
+ * @param   _property_key the name of the method to be decorated
  * @param   descriptor    the Property Descriptor of the prototype’s method
  * @returns               `descriptor`, with a new value that is the decorated method
  */
@@ -41,6 +41,28 @@ export function memoizeGetter<R>(
 	descriptor.get = function () {
 		memomap.has(this) || memomap.set(this, method.call(this));
 		return memomap.get(this)!;
+	};
+	return descriptor;
+}
+
+
+
+/**
+ * Decorator for performing strict equality (`===`), and then disjuncting (`||`) that result
+ * with the results of performing the method.
+ * @param   _prototype    the prototype that has the method to be decorated
+ * @param   _property_key the name of the method to be decorated
+ * @param   descriptor    the Property Descriptor of the prototype’s method
+ * @returns               `descriptor`, with a new value that is the decorated method
+ */
+export function strictEqual<Proto extends object, Ps extends unknown[]>(
+	_prototype: Proto,
+	_property_key: string,
+	descriptor: TypedPropertyDescriptor<(this: Proto, that: Proto, ...args: Ps) => boolean>,
+): typeof descriptor {
+	const method = descriptor.value!;
+	descriptor.value = function (that, ...args) {
+		return this === that || method.call(this, that, ...args);
 	};
 	return descriptor;
 }

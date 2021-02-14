@@ -1,3 +1,6 @@
+import {
+	strictEqual,
+} from '../decorators';
 import type {SolidLanguageType} from './SolidLanguageType';
 import {SolidObject} from './SolidObject';
 
@@ -31,8 +34,8 @@ export class SolidNull extends SolidObject {
 	toString(): string {
 		return 'null'
 	}
-	/** @override */
-	@SolidObject.identicalDeco
+	/** @overrides SolidObject */
+	@strictEqual
 	identical(value: SolidObject): boolean {
 		return value instanceof SolidNull
 	}
